@@ -1,0 +1,84 @@
+/* General reset */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Header */
+header {
+  background-color: #0066cc;
+  color: white;
+  padding: 2em 0;
+  text-align: center;
+}
+
+header .logo {
+  max-width: 100px;
+  display: block;
+  margin: 0 auto 1em;
+}
+
+header nav a {
+  margin: 0 10px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+/* Container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Sections */
+section {
+  padding: 2em;
+  text-align: center;
+}
+
+section h2 {
+  color: #333;
+}
+
+section p, section ul {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+section img {
+  max-width: 80%;
+  height: auto;
+  margin-top: 1em;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Footer */
+footer {
+  background-color: #333;
+  color: white;
+  padding: 1em 0;
+  text-align: center;
+}
+
+/* Buttons & Links in Sections */
+section a {
+  display: inline-block;
+  margin: 0.5em;
+  padding: 0.7em 1.5em;
+  background-color: #0066cc;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+section a:hover {
+  background-color: #004999;
+}
