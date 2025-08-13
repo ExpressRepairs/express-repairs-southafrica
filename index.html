@@ -293,32 +293,76 @@ drawWheel();
   <footer>
     <p>&copy; 2025 Express Repairs South Africa</p>
   </footer>
-<!-- APP COMING SOON BANNER – paste before </body> tag -->
+<!-- APP COMING SOON BANNER -->
 <div id="app-coming-banner" role="region" aria-label="App coming soon notice">
   <div class="acb-inner">
     <span class="acb-badge">Coming Soon</span>
     <span class="acb-text">
       Our Express Repairs South Africa mobile app is launching soon.
     </span>
-    <button id="infoBtn" class="acb-btn">More Information</button>
-    <a class="acb-btn outline" href="https://wa.me/27691239041" target="_blank" rel="noopener">
+
+    <!-- WhatsApp button (opens chat with pre-filled message) -->
+    <a
+      class="acb-btn"
+      href="https://wa.me/27691239041?text=Hi%20Express%20Repairs%20South%20Africa%2C%20please%20let%20me%20know%20when%20your%20app%20launches."
+      target="_blank" rel="noopener"
+      aria-label="Chat on WhatsApp about the app launch"
+    >
       WhatsApp 069&nbsp;123&nbsp;9041
     </a>
+
     <button class="acb-close" aria-label="Close notice" title="Close">×</button>
   </div>
 </div>
 
-<!-- POPUP -->
-<div id="infoPopup">
-  <div class="popup-box">
-    <h2>Express Repairs South Africa App</h2>
-    <p><strong>Planned Features:</strong></p>
-    <ul>
-      <li>📷 Book repairs with photo or video uploads</li>
-      <li>💬 Live WhatsApp support button</li>
-      <li>🤖 AI repair assistant for troubleshooting</li>
-      <li>🌍 Multilingual support (English, Afrikaans, Zulu, Sepedi, Xhosa, Tswana, Tsonga)</li>
-      <li>👨‍🔧 Tech
+<style>
+  #app-coming-banner{
+    position:fixed;left:0;right:0;bottom:0;z-index:9999;
+    background:#0b1220;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    box-shadow:0 -8px 24px rgba(0,0,0,.25);
+  }
+  #app-coming-banner .acb-inner{
+    max-width:1100px;margin:0 auto;padding:14px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  }
+  .acb-badge{
+    background:#22c55e;color:#0b1220;font-weight:700;border-radius:999px;padding:6px 10px;font-size:12px;letter-spacing:.3px;text-transform:uppercase;
+  }
+  .acb-text{flex:1;min-width:220px;font-size:14px;line-height:1.3}
+  .acb-btn{
+    display:inline-block;border:0;border-radius:999px;padding:8px 14px;font-weight:600;text-decoration:none;
+    background:#ff7a00;color:#0b1220;transition:transform .08s ease,opacity .2s ease;cursor:pointer;
+  }
+  .acb-btn:hover{transform:translateY(-1px)}
+  .acb-close{
+    margin-left:auto;background:transparent;border:0;color:#fff;font-size:20px;line-height:1;cursor:pointer;padding:4px 8px;opacity:.8;
+  }
+  .acb-close:hover{opacity:1}
+  @media (max-width:480px){
+    .acb-text{font-size:13px}
+    .acb-btn{padding:8px 12px}
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function(){
+    const KEY = "acb-dismissed-until";
+    const banner = document.getElementById("app-coming-banner");
+    const closeBtn = banner.querySelector(".acb-close");
+
+    // Hide if previously dismissed within 7 days
+    const until = parseInt(localStorage.getItem(KEY) || "0", 10);
+    if (Date.now() < until) {
+      banner.style.display = "none";
+      return;
+    }
+
+    // Close banner and remember for 7 days
+    closeBtn.addEventListener("click", function(){
+      localStorage.setItem(KEY, String(Date.now() + 7*24*60*60*1000));
+      banner.style.display = "none";
+    });
+  });
+</script>
 
 </body>
 </html>
