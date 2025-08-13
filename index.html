@@ -177,17 +177,23 @@ function rotateWheel() {
     }
 }
 
-function finishSpin() {
+
+// Spfunction finishSpin() {
     let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
     let cumulative = 0;
     let prize;
-    for(let i=0;i<segments.length;i++){
-        cumulative += angles[i];
-        if(finalAngle <= cumulative){
+    
+    for(let i = 0; i < segments.length; i++){
+        let start = cumulative;
+        let end = cumulative + angles[i];
+        if(finalAngle >= start && finalAngle < end){
             prize = segments[i];
             break;
         }
+        cumulative += angles[i];
     }
+
+    if(!prize) prize = segments[segments.length - 1]; // fallback in case of rounding
 
     if(prize.preCode === "TRYAGAIN"){
         resultText.textContent = "😅 Try Again! Spin the wheel once more.";
@@ -210,8 +216,7 @@ function finishSpin() {
 
     spinning = false;
 }
-
-// Spin button
+in button
 spinBtn.onclick = () => {
     if(spinning) return; // prevent double spin
     let lastSpinDate = localStorage.getItem("lastSpinDate");
