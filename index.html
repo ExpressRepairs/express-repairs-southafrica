@@ -120,7 +120,7 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
-// Prizes
+// Prize segments
 const segments = [
     { name: "5% Off", preCode: "DISC5", weight: 1 },
     { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL", weight: 1 },
@@ -129,21 +129,22 @@ const segments = [
     { name: "15% Off", preCode: "DISC15", weight: 1 }
 ];
 
-// Calculate total weight
+// Total weight & angles
 const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
 const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
 
 const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
 let startAngle = 0;
 let spinSpeed = 0;
+let spinning = false;
 
 function drawWheel() {
-    ctx.clearRect(0,0,300,300);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.lineWidth = 2;
     ctx.font = "bold 14px Arial";
+
     let angle = startAngle;
     for(let i=0;i<segments.length;i++){
-        // Draw segment
         ctx.fillStyle = colors[i % colors.length];
         ctx.beginPath();
         ctx.moveTo(150,150);
@@ -177,48 +178,54 @@ function drawWheel() {
     ctx.fill();
 }
 
-// Animate spin
-function rotateWheel() {
-    drawWheel();
+function animateSpin() {
     if(spinSpeed > 0.002){
         startAngle += spinSpeed;
         spinSpeed *= 0.97; // friction
-        requestAnimationFrame(rotateWheel);
+        drawWheel();
+        requestAnimationFrame(animateSpin);
     } else {
-        // Determine prize
-        let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
-        let cumulative = 0;
-        let prize;
-        for(let i=0; i<segments.length; i++){
-            cumulative += angles[i];
-            if(finalAngle <= cumulative){
-                prize = segments[i];
-                break;
-            }
-        }
-
-        if(prize.preCode === "TRYAGAIN"){
-            resultText.textContent = "😅 Try Again! Spin the wheel once more.";
-            noteText.style.display = "none";
-            tokenText.style.display = "none";
-        } else {
-            resultText.textContent = "🎉 You got: " + prize.name.replace("\n", " ");
-            noteText.style.display = "block";
-
-            let randomToken = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-            tokenText.style.display = "block";
-            tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
-
-            winSound.play();
-            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-
-            localStorage.setItem("lastSpinDate", new Date().toDateString());
-            localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
-        }
+        finishSpin();
     }
 }
 
+function finishSpin() {
+    // Determine prize
+    let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
+    let cumulative = 0;
+    let prize;
+    for(let i=0; i<segments.length; i++){
+        cumulative += angles[i];
+        if(finalAngle <= cumulative){
+            prize = segments[i];
+            break;
+        }
+    }
+
+    if(prize.preCode === "TRYAGAIN"){
+        resultText.textContent = "😅 Try Again! Spin the wheel once more.";
+        noteText.style.display = "none";
+        tokenText.style.display = "none";
+    } else {
+        resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
+        noteText.style.display = "block";
+
+        let randomToken = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        tokenText.style.display = "block";
+        tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
+
+        winSound.play();
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+        localStorage.setItem("lastSpinDate", new Date().toDateString());
+        localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
+    }
+
+    spinning = false;
+}
+
 spinBtn.onclick = () => {
+    if(spinning) return; // prevent double spin
     let lastSpinDate = localStorage.getItem("lastSpinDate");
     let today = new Date().toDateString();
 
@@ -234,13 +241,13 @@ spinBtn.onclick = () => {
     noteText.style.display = "none";
     tokenText.style.display = "none";
 
-    spinSpeed = Math.random() * 0.3 + 0.3; // random start speed
-    rotateWheel();
+    spinning = true;
+    spinSpeed = Math.random() * 0.4 + 0.5; // strong initial speed
+    animateSpin();
 };
 
 drawWheel();
 </script>
-
 
 </script>
 <!-- Services Section -->
