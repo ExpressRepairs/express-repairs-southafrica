@@ -100,7 +100,6 @@
 
 <!-- Confetti Script -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
 <script>
 const openWheelBtn = document.getElementById("openWheelBtn");
 const wheelPopup = document.getElementById("wheelPopup");
@@ -119,19 +118,20 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
-// Equal segments
+// Prize segments with weights
 const segments = [
-    { name: "5% Off", preCode: "DISC5" },
-    { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL" },
-    { name: "10% Off", preCode: "DISC10" },
-    { name: "Try Again", preCode: "TRYAGAIN" },
-    { name: "15% Off", preCode: "DISC15" }
+    { name: "5% Off", preCode: "DISC5", weight: 1 },
+    { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL", weight: 1 },
+    { name: "10% Off", preCode: "DISC10", weight: 1 },
+    { name: "Try Again", preCode: "TRYAGAIN", weight: 3 }, // weighted bigger
+    { name: "15% Off", preCode: "DISC15", weight: 1 }
 ];
 
-const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
-const segmentCount = segments.length;
-const angles = segments.map(() => (2 * Math.PI) / segmentCount);
+// Calculate total weight & angles
+const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
+const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
 
+const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
 let startAngle = 0;
 let spinSpeed = 0;
 let spinning = false;
@@ -152,7 +152,7 @@ function drawWheel() {
         ctx.strokeStyle = "#ffffff";
         ctx.stroke();
 
-        // Text
+        // Draw text
         ctx.save();
         ctx.fillStyle = "white";
         let textAngle = angle + angles[i]/2;
@@ -167,7 +167,7 @@ function drawWheel() {
         angle += angles[i];
     }
 
-    // Pointer
+    // Draw pointer
     ctx.fillStyle = "#FF6600";
     ctx.beginPath();
     ctx.moveTo(150-10,10);
@@ -176,53 +176,50 @@ function drawWheel() {
     ctx.fill();
 }
 
-function animateSpin() {
-    if(spinSpeed > 0.002){
+function rotateWheel() {
+    if(spinSpeed > 0.05){ // original working threshold
         startAngle += spinSpeed;
-        spinSpeed *= 0.97;
+        spinSpeed *= 0.97; // original friction
         drawWheel();
-        requestAnimationFrame(animateSpin);
+        requestAnimationFrame(rotateWheel);
     } else {
-        finishSpin();
-    }
-}
-
-function finishSpin() {
-    let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
-    let cumulative = 0;
-    let prize;
-    for(let i=0; i<segments.length; i++){
-        cumulative += angles[i];
-        if(finalAngle <= cumulative){
-            prize = segments[i];
-            break;
+        // Determine prize
+        let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
+        let cumulative = 0;
+        let prize;
+        for(let i=0; i<segments.length; i++){
+            cumulative += angles[i];
+            if(finalAngle <= cumulative){
+                prize = segments[i];
+                break;
+            }
         }
+
+        if(prize.preCode === "TRYAGAIN"){
+            resultText.textContent = "😅 Try Again! Spin the wheel once more.";
+            noteText.style.display = "none";
+            tokenText.style.display = "none";
+        } else {
+            resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
+            noteText.style.display = "block";
+
+            let randomToken = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+            tokenText.style.display = "block";
+            tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
+
+            winSound.play();
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+            localStorage.setItem("lastSpinDate", new Date().toDateString());
+            localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
+        }
+
+        spinning = false;
     }
-
-    if(prize.preCode === "TRYAGAIN"){
-        resultText.textContent = "😅 Try Again! Spin the wheel once more.";
-        noteText.style.display = "none";
-        tokenText.style.display = "none";
-    } else {
-        resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
-        noteText.style.display = "block";
-
-        let randomToken = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-        tokenText.style.display = "block";
-        tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
-
-        winSound.play();
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-
-        localStorage.setItem("lastSpinDate", new Date().toDateString());
-        localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
-    }
-
-    spinning = false;
 }
 
 spinBtn.onclick = () => {
-    if(spinning) return;
+    if(spinning) return; // prevent double spin
     let lastSpinDate = localStorage.getItem("lastSpinDate");
     let today = new Date().toDateString();
 
@@ -239,12 +236,13 @@ spinBtn.onclick = () => {
     tokenText.style.display = "none";
 
     spinning = true;
-    spinSpeed = Math.random() * 0.4 + 0.5; // visually strong
-    animateSpin();
+    spinSpeed = Math.random() * 0.3 + 0.3; // original working speed
+    rotateWheel();
 };
 
 drawWheel();
 </script>
+
 
 
 </script>
