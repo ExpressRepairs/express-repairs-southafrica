@@ -101,7 +101,6 @@
 <!-- Confetti Script -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-
 <script>
 const openWheelBtn = document.getElementById("openWheelBtn");
 const wheelPopup = document.getElementById("wheelPopup");
@@ -120,20 +119,19 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
-// Prize segments
+// Equal segments
 const segments = [
-    { name: "5% Off", preCode: "DISC5", weight: 1 },
-    { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL", weight: 1 },
-    { name: "10% Off", preCode: "DISC10", weight: 1 },
-    { name: "Try Again", preCode: "TRYAGAIN", weight: 3 },
-    { name: "15% Off", preCode: "DISC15", weight: 1 }
+    { name: "5% Off", preCode: "DISC5" },
+    { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL" },
+    { name: "10% Off", preCode: "DISC10" },
+    { name: "Try Again", preCode: "TRYAGAIN" },
+    { name: "15% Off", preCode: "DISC15" }
 ];
 
-// Total weight & angles
-const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
-const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
-
 const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
+const segmentCount = segments.length;
+const angles = segments.map(() => (2 * Math.PI) / segmentCount);
+
 let startAngle = 0;
 let spinSpeed = 0;
 let spinning = false;
@@ -154,7 +152,7 @@ function drawWheel() {
         ctx.strokeStyle = "#ffffff";
         ctx.stroke();
 
-        // Draw text
+        // Text
         ctx.save();
         ctx.fillStyle = "white";
         let textAngle = angle + angles[i]/2;
@@ -169,7 +167,7 @@ function drawWheel() {
         angle += angles[i];
     }
 
-    // Draw pointer
+    // Pointer
     ctx.fillStyle = "#FF6600";
     ctx.beginPath();
     ctx.moveTo(150-10,10);
@@ -181,7 +179,7 @@ function drawWheel() {
 function animateSpin() {
     if(spinSpeed > 0.002){
         startAngle += spinSpeed;
-        spinSpeed *= 0.97; // friction
+        spinSpeed *= 0.97;
         drawWheel();
         requestAnimationFrame(animateSpin);
     } else {
@@ -190,7 +188,6 @@ function animateSpin() {
 }
 
 function finishSpin() {
-    // Determine prize
     let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
     let cumulative = 0;
     let prize;
@@ -225,7 +222,7 @@ function finishSpin() {
 }
 
 spinBtn.onclick = () => {
-    if(spinning) return; // prevent double spin
+    if(spinning) return;
     let lastSpinDate = localStorage.getItem("lastSpinDate");
     let today = new Date().toDateString();
 
@@ -242,12 +239,13 @@ spinBtn.onclick = () => {
     tokenText.style.display = "none";
 
     spinning = true;
-    spinSpeed = Math.random() * 0.4 + 0.5; // strong initial speed
+    spinSpeed = Math.random() * 0.4 + 0.5; // visually strong
     animateSpin();
 };
 
 drawWheel();
 </script>
+
 
 </script>
 <!-- Services Section -->
