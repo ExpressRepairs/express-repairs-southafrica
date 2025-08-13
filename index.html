@@ -120,18 +120,30 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
+// Define prizes with pre-codes
 const segments = [
-    "5% Off",
-    "Free Call-out (30 km Radius)",
-    "10% Off",
-    "Try Again",
-    "15% Off"
+    { name: "5% Off", preCode: "DISC5" },
+    { name: "Free Call-out (30 km Radius)", preCode: "FREECALL" },
+    { name: "10% Off", preCode: "DISC10" },
+    { name: "Try Again", preCode: "TRYAGAIN" },
+    { name: "15% Off", preCode: "DISC15" }
 ];
 
 const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
 let startAngle = 0;
 let arc = Math.PI / (segments.length/2);
 let spinAngle = 0;
+
+// Create weighted array (Try Again appears 3 times)
+const weightedSegments = [
+    segments[0],
+    segments[1],
+    segments[2],
+    segments[3],
+    segments[3],
+    segments[3],
+    segments[4]
+];
 
 function drawWheel() {
     ctx.clearRect(0,0,300,300);
@@ -149,7 +161,7 @@ function drawWheel() {
         ctx.fillStyle = "white";
         ctx.translate(150 + Math.cos(angle + arc/2)*100, 150 + Math.sin(angle + arc/2)*100);
         ctx.rotate(angle + arc/2);
-        ctx.fillText(segments[i], -ctx.measureText(segments[i]).width/2, 0);
+        ctx.fillText(segments[i].name, -ctx.measureText(segments[i].name).width/2, 0);
         ctx.restore();
     }
     ctx.fillStyle = "#FF6600";
@@ -163,30 +175,36 @@ function drawWheel() {
 function rotateWheel(){
     spinAngle *= 0.97;
     if(spinAngle < 0.5){
-        let degrees = startAngle * 180 / Math.PI + 90;
-        let index = Math.floor((360 - degrees % 360) / (360 / segments.length));
-        let prize = segments[index];
+        // Pick prize using weighted array
+        let prize = weightedSegments[Math.floor(Math.random() * weightedSegments.length)];
 
-        resultText.textContent = "🎉 You got: " + prize;
-        noteText.style.display = "block";
+        if(prize.preCode === "TRYAGAIN"){
+            resultText.textContent = "😅 Try Again! Spin the wheel once more.";
+            noteText.style.display = "none";
+            tokenText.style.display = "none";
+        } else {
+            resultText.textContent = "🎉 You got: " + prize.name;
+            noteText.style.display = "block";
 
-        // Generate token
-        let token = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-        tokenText.style.display = "block";
-        tokenText.textContent = "Token: " + token + " (send to claim)";
+            // Generate random token
+            let randomToken = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-        winSound.play();
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+            // Show combined pre-code + random token
+            tokenText.style.display = "block";
+            tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
 
-        // Save spin date and token
-        localStorage.setItem("lastSpinDate", new Date().toDateString());
-        localStorage.setItem("lastSpinToken", token);
+            winSound.play();
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+            // Save spin date and token
+            localStorage.setItem("lastSpinDate", new Date().toDateString());
+            localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
+        }
 
         return;
     }
     startAngle += spinAngle * Math.PI / 180;
     drawWheel();
-    requestAnimationFrame(rotateWheel);
 }
 
 spinBtn.onclick = () => {
@@ -194,10 +212,10 @@ spinBtn.onclick = () => {
     let today = new Date().toDateString();
 
     if(lastSpinDate === today){
-        resultText.textContent = "⚠ You can only spin once per day. Your token: " + localStorage.getItem("lastSpinToken");
+        resultText.textContent = "⚠ You can only spin once per day. Your code: " + localStorage.getItem("lastSpinToken");
         noteText.style.display = "none";
         tokenText.style.display = "block";
-        tokenText.textContent = "Token: " + localStorage.getItem("lastSpinToken");
+        tokenText.textContent = "Code: " + localStorage.getItem("lastSpinToken");
         return;
     }
 
@@ -209,6 +227,8 @@ spinBtn.onclick = () => {
 };
 
 drawWheel();
+</script>
+
 </script>
 <!-- Services Section -->
   <section id="services">
