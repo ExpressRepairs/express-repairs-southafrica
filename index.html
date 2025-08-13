@@ -63,18 +63,7 @@
     <img src="images/about.jpg" alt="About Us" width="300">
   </section>
 <!-- Spin the Wheel Button -->
-<button id="openWheelBtn" 
-    style="
-        background:#FF6600;
-        color:white;
-        padding:20px 40px;
-        border:none;
-        border-radius:10px;
-        cursor:pointer;
-        font-size:20px;
-        display:block;
-        margin:40px auto;
-    ">
+<button id="openWheelBtn" style="background:#FF6600;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;">
     🎡 Spin the Wheel
 </button>
 
@@ -92,14 +81,15 @@
         </button>
         <p id="resultText" style="font-weight:bold;margin-top:10px;color:#333;"></p>
         <p id="noteText" style="font-size:12px;color:#777;display:none;">
-            Prize must be used the same day. Claiming does not guarantee immediate service — availability depends on technician schedule.Each Prize must be claimed on a diffrent item!
-        </p
+            Prize must be used the same day. Claiming does not guarantee immediate service — availability depends on technician schedule.
+        </p>
         <p id="tokenText" style="font-size:14px;color:#FF6600;font-weight:bold;display:none;"></p>
     </div>
 </div>
 
 <!-- Confetti Script -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
 <script>
 const openWheelBtn = document.getElementById("openWheelBtn");
 const wheelPopup = document.getElementById("wheelPopup");
@@ -127,7 +117,6 @@ const segments = [
     { name: "15% Off", preCode: "DISC15", weight: 1 }
 ];
 
-// Calculate total weight & angles
 const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
 const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
 
@@ -167,7 +156,7 @@ function drawWheel() {
         angle += angles[i];
     }
 
-    // Draw pointer
+    // Pointer
     ctx.fillStyle = "#FF6600";
     ctx.beginPath();
     ctx.moveTo(150-10,10);
@@ -176,48 +165,53 @@ function drawWheel() {
     ctx.fill();
 }
 
+// Original working rotate function
 function rotateWheel() {
-    if(spinSpeed > 0.05){ // original working threshold
+    if(spinSpeed > 0.002){ // friction threshold
         startAngle += spinSpeed;
-        spinSpeed *= 0.97; // original friction
+        spinSpeed *= 0.97; // friction
         drawWheel();
         requestAnimationFrame(rotateWheel);
     } else {
-        // Determine prize
-        let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
-        let cumulative = 0;
-        let prize;
-        for(let i=0; i<segments.length; i++){
-            cumulative += angles[i];
-            if(finalAngle <= cumulative){
-                prize = segments[i];
-                break;
-            }
-        }
-
-        if(prize.preCode === "TRYAGAIN"){
-            resultText.textContent = "😅 Try Again! Spin the wheel once more.";
-            noteText.style.display = "none";
-            tokenText.style.display = "none";
-        } else {
-            resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
-            noteText.style.display = "block";
-
-            let randomToken = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-            tokenText.style.display = "block";
-            tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
-
-            winSound.play();
-            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-
-            localStorage.setItem("lastSpinDate", new Date().toDateString());
-            localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
-        }
-
-        spinning = false;
+        finishSpin();
     }
 }
 
+function finishSpin() {
+    let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
+    let cumulative = 0;
+    let prize;
+    for(let i=0;i<segments.length;i++){
+        cumulative += angles[i];
+        if(finalAngle <= cumulative){
+            prize = segments[i];
+            break;
+        }
+    }
+
+    if(prize.preCode === "TRYAGAIN"){
+        resultText.textContent = "😅 Try Again! Spin the wheel once more.";
+        noteText.style.display = "none";
+        tokenText.style.display = "none";
+    } else {
+        resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
+        noteText.style.display = "block";
+
+        let randomToken = "EXP-" + Math.random().toString(36).substring(2,8).toUpperCase();
+        tokenText.style.display = "block";
+        tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
+
+        winSound.play();
+        confetti({ particleCount: 80, spread: 70, origin: { y:0.6 } });
+
+        localStorage.setItem("lastSpinDate", new Date().toDateString());
+        localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
+    }
+
+    spinning = false;
+}
+
+// Spin button
 spinBtn.onclick = () => {
     if(spinning) return; // prevent double spin
     let lastSpinDate = localStorage.getItem("lastSpinDate");
@@ -240,10 +234,9 @@ spinBtn.onclick = () => {
     rotateWheel();
 };
 
+// Initial draw
 drawWheel();
 </script>
-
-
 
 </script>
 <!-- Services Section -->
