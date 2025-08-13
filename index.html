@@ -120,50 +120,56 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
-// Define prizes with pre-codes
+// Define prizes with pre-codes and weights
 const segments = [
-    { name: "5% Off", preCode: "DISC5" },
-    { name: "Free Call-out (30 km Radius)", preCode: "FREECALL" },
-    { name: "10% Off", preCode: "DISC10" },
-    { name: "Try Again", preCode: "TRYAGAIN" },
-    { name: "15% Off", preCode: "DISC15" }
+    { name: "5% Off", preCode: "DISC5", weight: 1 },
+    { name: "Free Call-out (30 km Radius)", preCode: "FREECALL", weight: 1 },
+    { name: "10% Off", preCode: "DISC10", weight: 1 },
+    { name: "Try Again", preCode: "TRYAGAIN", weight: 3 },
+    { name: "15% Off", preCode: "DISC15", weight: 1 }
 ];
+
+// Calculate total weight
+const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
+
+// Calculate segment angles
+const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
 
 const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
 let startAngle = 0;
-let arc = Math.PI / (segments.length/2);
 let spinAngle = 0;
-
-// Create weighted array (Try Again appears 3 times)
-const weightedSegments = [
-    segments[0],
-    segments[1],
-    segments[2],
-    segments[3],
-    segments[3],
-    segments[3],
-    segments[4]
-];
 
 function drawWheel() {
     ctx.clearRect(0,0,300,300);
-    ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
     ctx.font = "bold 14px Arial";
+    let angle = 0;
     for(let i=0;i<segments.length;i++){
-        let angle = startAngle + i*arc;
-        ctx.fillStyle = colors[i];
+        // Draw segment
+        ctx.fillStyle = colors[i % colors.length];
         ctx.beginPath();
-        ctx.arc(150,150,140,angle,angle+arc,false);
-        ctx.arc(150,150,0,angle+arc,angle,true);
+        ctx.moveTo(150,150);
+        ctx.arc(150,150,140,angle,angle + angles[i], false);
+        ctx.closePath();
         ctx.fill();
+        
+        // Draw border
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+        
+        // Draw text
         ctx.save();
         ctx.fillStyle = "white";
-        ctx.translate(150 + Math.cos(angle + arc/2)*100, 150 + Math.sin(angle + arc/2)*100);
-        ctx.rotate(angle + arc/2);
+        let textAngle = angle + angles[i]/2;
+        ctx.translate(150 + Math.cos(textAngle) * 90, 150 + Math.sin(textAngle) * 90);
+        ctx.rotate(textAngle);
         ctx.fillText(segments[i].name, -ctx.measureText(segments[i].name).width/2, 0);
         ctx.restore();
+
+        angle += angles[i];
     }
+
+    // Draw pointer
     ctx.fillStyle = "#FF6600";
     ctx.beginPath();
     ctx.moveTo(150-10,10);
@@ -172,11 +178,20 @@ function drawWheel() {
     ctx.fill();
 }
 
-function rotateWheel(){
+function rotateWheel() {
     spinAngle *= 0.97;
     if(spinAngle < 0.5){
-        // Pick prize using weighted array
-        let prize = weightedSegments[Math.floor(Math.random() * weightedSegments.length)];
+        // Determine the prize based on final angle
+        let finalAngle = startAngle % (2*Math.PI);
+        let cumulativeAngle = 0;
+        let prize;
+        for(let i=0; i<segments.length; i++){
+            cumulativeAngle += angles[i];
+            if(finalAngle < cumulativeAngle){
+                prize = segments[i];
+                break;
+            }
+        }
 
         if(prize.preCode === "TRYAGAIN"){
             resultText.textContent = "😅 Try Again! Spin the wheel once more.";
@@ -186,26 +201,47 @@ function rotateWheel(){
             resultText.textContent = "🎉 You got: " + prize.name;
             noteText.style.display = "block";
 
-            // Generate random token
             let randomToken = "EXP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-            // Show combined pre-code + random token
             tokenText.style.display = "block";
             tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
 
             winSound.play();
             confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
 
-            // Save spin date and token
             localStorage.setItem("lastSpinDate", new Date().toDateString());
             localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
         }
 
         return;
     }
+
     startAngle += spinAngle * Math.PI / 180;
     drawWheel();
+    requestAnimationFrame(rotateWheel);
 }
+
+spinBtn.onclick = () => {
+    let lastSpinDate = localStorage.getItem("lastSpinDate");
+    let today = new Date().toDateString();
+
+    if(lastSpinDate === today){
+        resultText.textContent = "⚠ You can only spin once per day. Your code: " + localStorage.getItem("lastSpinToken");
+        noteText.style.display = "none";
+        tokenText.style.display = "block";
+        tokenText.textContent = "Code: " + localStorage.getItem("lastSpinToken");
+        return;
+    }
+
+    resultText.textContent = "";
+    noteText.style.display = "none";
+    tokenText.style.display = "none";
+    spinAngle = Math.random() * 30 + 15; // spin speed
+    rotateWheel();
+};
+
+drawWheel();
+</script>
+
 
 spinBtn.onclick = () => {
     let lastSpinDate = localStorage.getItem("lastSpinDate");
