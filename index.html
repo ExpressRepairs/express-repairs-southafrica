@@ -242,29 +242,6 @@ spinBtn.onclick = () => {
 drawWheel();
 </script>
 
-
-spinBtn.onclick = () => {
-    let lastSpinDate = localStorage.getItem("lastSpinDate");
-    let today = new Date().toDateString();
-
-    if(lastSpinDate === today){
-        resultText.textContent = "⚠ You can only spin once per day. Your code: " + localStorage.getItem("lastSpinToken");
-        noteText.style.display = "none";
-        tokenText.style.display = "block";
-        tokenText.textContent = "Code: " + localStorage.getItem("lastSpinToken");
-        return;
-    }
-
-    resultText.textContent = "";
-    noteText.style.display = "none";
-    tokenText.style.display = "none";
-    spinAngle = Math.random() * 20 + 10;
-    rotateWheel();
-};
-
-drawWheel();
-</script>
-
 </script>
 <!-- Services Section -->
   <section id="services">
