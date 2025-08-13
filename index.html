@@ -62,132 +62,167 @@
     <p>We are proudly South African, offering expert repairs in appliances, air-conditioning, refrigeration, and garden equipment. Our mission is to help our clients while creating jobs and uplifting communities.</p>
     <img src="images/about.jpg" alt="About Us" width="300">
   </section>
-<!-- Spin the Wheel Button -->
-<button id="openWheelBtn" style="background:#FF6600;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;">
-    🎡 Spin the Wheel
-</button>
 
-<!-- Wheel Popup -->
-<div id="wheelPopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:10px;padding:20px;text-align:center;position:relative;max-width:400px;">
-        <span id="closeWheel" style="position:absolute;top:10px;right:15px;cursor:pointer;font-size:20px;">✖</span>
-        
-        <!-- Wheel Canvas -->
-        <canvas id="wheelCanvas" width="300" height="300"></canvas>
-        
-        <br>
-        <button id="spinBtn" style="margin-top:15px;background:#FF6600;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;">
-            Spin!
-        </button>
-        <p id="resultText" style="font-weight:bold;margin-top:10px;color:#333;"></p>
-        <p id="noteText" style="font-size:12px;color:#777;display:none;">
-            Prize must be used the same day. Claiming does not guarantee immediate service — availability depends on technician schedule.
-        </p>
-    </div>
-</div>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spin the Wheel - Express Repairs</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+    #wheelCanvas {
+        border: 8px solid #ff6600;
+        border-radius: 50%;
+        background: white;
+    }
+    #spinBtn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #ff6600;
+        color: white;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+    #result {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        text-align: center;
+        color: #333;
+    }
+    canvas {
+        display: block;
+        margin: auto;
+    }
+</style>
+</head>
+<body>
 
-<!-- Confetti Script -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<canvas id="wheelCanvas" width="400" height="400"></canvas>
+<button id="spinBtn">🎡 Spin the Wheel</button>
+<div id="result"></div>
 
+<audio id="winSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-const openWheelBtn = document.getElementById("openWheelBtn");
-const wheelPopup = document.getElementById("wheelPopup");
-const closeWheel = document.getElementById("closeWheel");
-const spinBtn = document.getElementById("spinBtn");
-const resultText = document.getElementById("resultText");
-const noteText = document.getElementById("noteText");
-
-const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
-
-// Open popup
-openWheelBtn.onclick = () => wheelPopup.style.display = "flex";
-closeWheel.onclick = () => wheelPopup.style.display = "none";
-window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display = "none"; };
-
-const canvas = document.getElementById("wheelCanvas");
-const ctx = canvas.getContext("2d");
-
-const segments = [
-    "5% Off",
-    "Free Call-out (30 km Radius)",
-    "10% Off",
-    "Try Again",
-    "15% Off"
+const prizes = [
+    "Free Call-out within 30 km radius",
+    "10% Off Labour",
+    "Free Diagnosis",
+    "5% Off Parts",
+    "Better Luck Next Time",
+    "Priority Booking"
 ];
 
-const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
+const colors = ["#ff6600", "#ffd700", "#ff6600", "#ffd700", "#ff6600", "#ffd700"];
+
+let wheelCanvas = document.getElementById("wheelCanvas");
+let ctx = wheelCanvas.getContext("2d");
+let spinBtn = document.getElementById("spinBtn");
+let resultDiv = document.getElementById("result");
+let winSound = document.getElementById("winSound");
+
 let startAngle = 0;
-let arc = Math.PI / (segments.length/2);
-let spinAngle = 0;
+let arc = Math.PI / (prizes.length / 2);
+let spinTimeout = null;
+let spinAngleStart = 10;
+let spinTime = 0;
+let spinTimeTotal = 0;
 
 function drawWheel() {
-    ctx.clearRect(0,0,300,300);
+    ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
     ctx.strokeStyle = "white";
     ctx.lineWidth = 2;
-    ctx.font = "bold 14px Arial";
-    for(let i=0;i<segments.length;i++){
-        let angle = startAngle + i*arc;
+    ctx.font = "16px Arial";
+    for (let i = 0; i < prizes.length; i++) {
+        let angle = startAngle + i * arc;
         ctx.fillStyle = colors[i];
         ctx.beginPath();
-        ctx.arc(150,150,140,angle,angle+arc,false);
-        ctx.arc(150,150,0,angle+arc,angle,true);
+        ctx.arc(200, 200, 200, angle, angle + arc, false);
+        ctx.arc(200, 200, 0, angle + arc, angle, true);
         ctx.fill();
         ctx.save();
-        ctx.fillStyle = "white";
-        ctx.translate(150 + Math.cos(angle + arc/2)*100, 150 + Math.sin(angle + arc/2)*100);
-        ctx.rotate(angle + arc/2);
-        ctx.fillText(segments[i], -ctx.measureText(segments[i]).width/2, 0);
+        ctx.fillStyle = "black";
+        ctx.translate(200 + Math.cos(angle + arc / 2) * 150,
+                      200 + Math.sin(angle + arc / 2) * 150);
+        ctx.rotate(angle + arc / 2);
+        ctx.fillText(prizes[i], -ctx.measureText(prizes[i]).width / 2, 0);
         ctx.restore();
     }
-    ctx.fillStyle = "#FF6600";
     ctx.beginPath();
-    ctx.moveTo(150-10,10);
-    ctx.lineTo(150+10,10);
-    ctx.lineTo(150,40);
+    ctx.moveTo(200, 0);
+    ctx.lineTo(180, 40);
+    ctx.lineTo(220, 40);
+    ctx.fillStyle = "#ff0000";
     ctx.fill();
 }
 
-function rotateWheel(){
-    spinAngle *= 0.97;
-    if(spinAngle < 0.5){
-        let degrees = startAngle * 180 / Math.PI + 90;
-        let index = Math.floor((360 - degrees % 360) / (360 / segments.length));
-        let prize = segments[index];
-
-        resultText.textContent = "🎉 You got: " + prize;
-        noteText.style.display = "block";
-
-        winSound.play();
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-
-        // Save spin date
-        localStorage.setItem("lastSpinDate", new Date().toDateString());
+function rotateWheel() {
+    spinTime += 30;
+    if (spinTime >= spinTimeTotal) {
+        stopRotateWheel();
         return;
     }
-    startAngle += spinAngle * Math.PI / 180;
+    let spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+    startAngle += (spinAngle * Math.PI / 180);
     drawWheel();
-    requestAnimationFrame(rotateWheel);
+    spinTimeout = setTimeout(rotateWheel, 30);
 }
 
-spinBtn.onclick = () => {
-    let lastSpinDate = localStorage.getItem("lastSpinDate");
-    let today = new Date().toDateString();
+function stopRotateWheel() {
+    clearTimeout(spinTimeout);
+    let degrees = startAngle * 180 / Math.PI + 90;
+    let arcd = arc * 180 / Math.PI;
+    let index = Math.floor((360 - degrees % 360) / arcd);
+    ctx.save();
+    ctx.restore();
+    let prize = prizes[index];
+    let token = Math.random().toString(36).substring(2, 10).toUpperCase();
+    resultDiv.innerHTML = `🎉 You won: <b>${prize}</b><br>
+    Token: <b>${token}</b><br>
+    <small>Must be used today. Once claimed, service will be done when available.</small>`;
+    winSound.play();
+    confetti();
+    localStorage.setItem("spinDate", new Date().toDateString());
+    localStorage.setItem("spinToken", token);
+}
 
-    if(lastSpinDate === today){
-        resultText.textContent = "⚠ You can only spin once per day. Please come back tomorrow!";
-        noteText.style.display = "none";
+function easeOut(t, b, c, d) {
+    let ts = (t/=d)*t;
+    let tc = ts*t;
+    return b+c*(tc + -3*ts + 3*t);
+}
+
+spinBtn.addEventListener("click", () => {
+    let lastSpin = localStorage.getItem("spinDate");
+    if (lastSpin === new Date().toDateString()) {
+        alert("You can only spin once per day! Your token: " + localStorage.getItem("spinToken"));
         return;
     }
-
-    resultText.textContent = "";
-    noteText.style.display = "none";
-    spinAngle = Math.random() * 20 + 10;
+    spinAngleStart = Math.random() * 10 + 10;
+    spinTime = 0;
+    spinTimeTotal = Math.random() * 3000 + 4000;
     rotateWheel();
-};
+});
 
 drawWheel();
 </script>
-  <!-- Services Section -->
+
+</body>
+</html><!-- Services Section -->
   <section id="services">
     <h2>Our Services</h2>
     <ul>
