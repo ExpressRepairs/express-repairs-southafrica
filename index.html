@@ -73,7 +73,7 @@
   </p>
 </section>
 
-<!-- Spin the Wheel Button (centered & bigger) -->
+<!-- Spin the Wheel Button -->
 <button id="openWheelBtn" style="background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:5px;cursor:pointer;font-size:18px;display:block;margin:50px auto 0 auto;">
     🎡 Spin the Wheel
 </button>
@@ -86,8 +86,7 @@
         <!-- Wheel Canvas -->
         <canvas id="wheelCanvas" width="300" height="300"></canvas>
         
-        <br>
-        <!-- Spin Button (centered & bigger) -->
+        <!-- Spin Button -->
         <button id="spinBtn" style="margin-top:20px;background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:8px;cursor:pointer;font-size:18px;display:block;margin-left:auto;margin-right:auto;">
             Spin!
         </button>
@@ -99,7 +98,7 @@
     </div>
 </div>
 
-<!-- Confetti Script -->
+<!-- Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
@@ -113,7 +112,7 @@ const tokenText = document.getElementById("tokenText");
 
 const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
 
-// Open popup
+// Open/Close Popup
 openWheelBtn.onclick = () => wheelPopup.style.display = "flex";
 closeWheel.onclick = () => wheelPopup.style.display = "none";
 window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display = "none"; };
@@ -121,7 +120,7 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
-// Prize segments with weights
+// Prize Segments
 const segments = [
     { name: "5% Off", preCode: "DISC5", weight: 1 },
     { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL", weight: 1 },
@@ -138,7 +137,7 @@ let startAngle = 0;
 let spinSpeed = 0;
 let spinning = false;
 
-// Draw wheel
+// Draw Wheel
 function drawWheel() {
     ctx.clearRect(0,0,300,300);
     ctx.lineWidth = 2;
@@ -155,7 +154,7 @@ function drawWheel() {
         ctx.strokeStyle = "#ffffff";
         ctx.stroke();
 
-        // Draw text
+        // Text
         ctx.save();
         ctx.fillStyle = "white";
         let textAngle = angle + angles[i]/2;
@@ -179,7 +178,7 @@ function drawWheel() {
     ctx.fill();
 }
 
-// Rotate wheel
+// Rotate Wheel
 function rotateWheel() {
     if(spinSpeed > 0.002){
         startAngle += spinSpeed;
@@ -191,10 +190,10 @@ function rotateWheel() {
     }
 }
 
-// Finish spin with correct angle detection
+// Determine Prize
 function finishSpin() {
-    // Adjust for pointer being at top
-    let finalAngle = (startAngle + Math.PI/2) % (2*Math.PI);
+    // Pointer is at top, adjust for correct match
+    let finalAngle = (2 * Math.PI - (startAngle - Math.PI/2) % (2*Math.PI)) % (2*Math.PI);
     let cumulative = 0;
     let prize = null;
 
@@ -209,12 +208,13 @@ function finishSpin() {
     }
     if(!prize) prize = segments[segments.length - 1];
 
+    // Save daily spin
+    localStorage.setItem("lastSpinDate", new Date().toDateString());
+
     if(prize.preCode === "TRYAGAIN"){
         resultText.textContent = "😅 Better luck next time! You can spin again tomorrow.";
         noteText.style.display = "none";
         tokenText.style.display = "none";
-        // Save date so no more spins today
-        localStorage.setItem("lastSpinDate", new Date().toDateString());
         localStorage.setItem("lastSpinToken", "NONE");
     } else {
         resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
@@ -227,14 +227,13 @@ function finishSpin() {
         winSound.play();
         confetti({ particleCount: 80, spread: 70, origin: { y:0.6 } });
 
-        localStorage.setItem("lastSpinDate", new Date().toDateString());
         localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
     }
 
     spinning = false;
 }
 
-// Spin button
+// Spin Button
 spinBtn.onclick = () => {
     if(spinning) return;
     let lastSpinDate = localStorage.getItem("lastSpinDate");
