@@ -117,7 +117,7 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
-// Prize list
+// Prize segments
 const segments = [
     { name: "5% Off", preCode: "DISC5", weight: 1 },
     { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL", weight: 1 },
@@ -126,7 +126,7 @@ const segments = [
     { name: "15% Off", preCode: "DISC15", weight: 1 }
 ];
 
-// Calculate angles
+// Calculate segment angles
 const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
 const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
 const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
@@ -165,7 +165,7 @@ function drawWheel() {
         angle += angles[i];
     }
 
-    // Pointer at top
+    // Pointer
     ctx.fillStyle = "#FF6600";
     ctx.beginPath();
     ctx.moveTo(150-10,10);
@@ -185,10 +185,10 @@ function rotateWheel() {
     }
 }
 
+// Correct pointer-aligned prize detection
 function finishSpin() {
-    // Adjust so we read the segment at the top
-    let adjustedAngle = (startAngle + Math.PI/2) % (2 * Math.PI);
-    if(adjustedAngle < 0) adjustedAngle += 2 * Math.PI;
+    // Calculate angle at pointer (12 o'clock)
+    let pointerAngle = (2 * Math.PI - (startAngle + Math.PI/2) % (2*Math.PI)) % (2*Math.PI);
 
     let cumulative = 0;
     let prize = null;
@@ -196,16 +196,16 @@ function finishSpin() {
     for(let i = 0; i < segments.length; i++){
         let segStart = cumulative;
         let segEnd = cumulative + angles[i];
-        if(adjustedAngle >= segStart && adjustedAngle < segEnd){
+        if(pointerAngle >= segStart && pointerAngle < segEnd){
             prize = segments[i];
             break;
         }
         cumulative += angles[i];
     }
 
-    // Fallback
     if(!prize) prize = segments[segments.length - 1];
 
+    // Try Again case
     if(prize.preCode === "TRYAGAIN"){
         resultText.textContent = "😅 Sorry, you landed on: Try Again.";
         noteText.style.display = "none";
@@ -216,7 +216,7 @@ function finishSpin() {
         return;
     }
 
-    // Win case
+    // Prize case
     resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
     noteText.style.display = "block";
     let randomToken = "EXP-" + Math.random().toString(36).substring(2,8).toUpperCase();
@@ -261,6 +261,7 @@ spinBtn.onclick = () => {
 
 drawWheel();
 </script>
+
 
 </script>
 <!-- Services Section -->
