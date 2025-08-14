@@ -73,7 +73,7 @@
   </p>
 </section>
 
-  <!-- Spin the Wheel Button (centered & bigger) -->
+<!-- Spin the Wheel Button (centered & bigger) -->
 <button id="openWheelBtn" style="background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:5px;cursor:pointer;font-size:18px;display:block;margin:50px auto 0 auto;">
     🎡 Spin the Wheel
 </button>
@@ -210,9 +210,12 @@ function finishSpin() {
     if(!prize) prize = segments[segments.length - 1];
 
     if(prize.preCode === "TRYAGAIN"){
-        resultText.textContent = "😅 Try Again! Spin the wheel once more.";
+        resultText.textContent = "😅 Better luck next time! You can spin again tomorrow.";
         noteText.style.display = "none";
         tokenText.style.display = "none";
+        // Save date so no more spins today
+        localStorage.setItem("lastSpinDate", new Date().toDateString());
+        localStorage.setItem("lastSpinToken", "NONE");
     } else {
         resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
         noteText.style.display = "block";
@@ -238,10 +241,16 @@ spinBtn.onclick = () => {
     let today = new Date().toDateString();
 
     if(lastSpinDate === today){
-        resultText.textContent = "⚠ You can only spin once per day. Your code: " + localStorage.getItem("lastSpinToken");
+        let savedToken = localStorage.getItem("lastSpinToken");
+        if(savedToken && savedToken !== "NONE"){
+            resultText.textContent = "⚠ You can only spin once per day. Your code: " + savedToken;
+            tokenText.style.display = "block";
+            tokenText.textContent = "Code: " + savedToken;
+        } else {
+            resultText.textContent = "⚠ You can only spin once per day. You had no win today.";
+            tokenText.style.display = "none";
+        }
         noteText.style.display = "none";
-        tokenText.style.display = "block";
-        tokenText.textContent = "Code: " + localStorage.getItem("lastSpinToken");
         return;
     }
 
@@ -256,7 +265,6 @@ spinBtn.onclick = () => {
 
 drawWheel();
 </script>
-
 
 
 </script>
