@@ -73,7 +73,7 @@
   </p>
 </section>
 
-<!-- Spin the Wheel Button -->
+<!-- Spin the Wheel Button (centered & bigger) -->
 <button id="openWheelBtn" style="background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:5px;cursor:pointer;font-size:18px;display:block;margin:50px auto 0 auto;">
     🎡 Spin the Wheel
 </button>
@@ -86,6 +86,7 @@
         <!-- Wheel Canvas -->
         <canvas id="wheelCanvas" width="300" height="300"></canvas>
         
+        <br>
         <!-- Spin Button -->
         <button id="spinBtn" style="margin-top:20px;background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:8px;cursor:pointer;font-size:18px;display:block;margin-left:auto;margin-right:auto;">
             Spin!
@@ -98,7 +99,7 @@
     </div>
 </div>
 
-<!-- Confetti -->
+<!-- Confetti Script -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
@@ -112,7 +113,6 @@ const tokenText = document.getElementById("tokenText");
 
 const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
 
-// Open/Close Popup
 openWheelBtn.onclick = () => wheelPopup.style.display = "flex";
 closeWheel.onclick = () => wheelPopup.style.display = "none";
 window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display = "none"; };
@@ -120,7 +120,7 @@ window.onclick = (e) => { if (e.target === wheelPopup) wheelPopup.style.display 
 const canvas = document.getElementById("wheelCanvas");
 const ctx = canvas.getContext("2d");
 
-// Prize Segments
+// Prize segments
 const segments = [
     { name: "5% Off", preCode: "DISC5", weight: 1 },
     { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL", weight: 1 },
@@ -137,7 +137,7 @@ let startAngle = 0;
 let spinSpeed = 0;
 let spinning = false;
 
-// Draw Wheel
+// Draw wheel
 function drawWheel() {
     ctx.clearRect(0,0,300,300);
     ctx.lineWidth = 2;
@@ -154,7 +154,6 @@ function drawWheel() {
         ctx.strokeStyle = "#ffffff";
         ctx.stroke();
 
-        // Text
         ctx.save();
         ctx.fillStyle = "white";
         let textAngle = angle + angles[i]/2;
@@ -178,7 +177,7 @@ function drawWheel() {
     ctx.fill();
 }
 
-// Rotate Wheel
+// Spin rotation
 function rotateWheel() {
     if(spinSpeed > 0.002){
         startAngle += spinSpeed;
@@ -190,17 +189,16 @@ function rotateWheel() {
     }
 }
 
-// Determine Prize
+// Finish spin — fixed detection
 function finishSpin() {
-    // Pointer is at top, adjust for correct match
-    let finalAngle = (2 * Math.PI - (startAngle - Math.PI/2) % (2*Math.PI)) % (2*Math.PI);
+    let finalAngle = (startAngle % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
     let cumulative = 0;
     let prize = null;
 
     for(let i = 0; i < segments.length; i++){
-        let start = cumulative;
-        let end = cumulative + angles[i];
-        if(finalAngle >= start && finalAngle < end){
+        let segStart = cumulative;
+        let segEnd = cumulative + angles[i];
+        if(finalAngle >= segStart && finalAngle < segEnd){
             prize = segments[i];
             break;
         }
@@ -208,48 +206,42 @@ function finishSpin() {
     }
     if(!prize) prize = segments[segments.length - 1];
 
-    // Save daily spin
-    localStorage.setItem("lastSpinDate", new Date().toDateString());
-
+    // If Try Again, no token, no save
     if(prize.preCode === "TRYAGAIN"){
-        resultText.textContent = "😅 Better luck next time! You can spin again tomorrow.";
+        resultText.textContent = "😅 Try Again! Spin the wheel once more.";
         noteText.style.display = "none";
         tokenText.style.display = "none";
-        localStorage.setItem("lastSpinToken", "NONE");
-    } else {
-        resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
-        noteText.style.display = "block";
-
-        let randomToken = "EXP-" + Math.random().toString(36).substring(2,8).toUpperCase();
-        tokenText.style.display = "block";
-        tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
-
-        winSound.play();
-        confetti({ particleCount: 80, spread: 70, origin: { y:0.6 } });
-
-        localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
+        spinning = false;
+        return;
     }
+
+    // Generate token
+    resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
+    noteText.style.display = "block";
+    let randomToken = "EXP-" + Math.random().toString(36).substring(2,8).toUpperCase();
+    tokenText.style.display = "block";
+    tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
+
+    winSound.play();
+    confetti({ particleCount: 80, spread: 70, origin: { y:0.6 } });
+
+    localStorage.setItem("lastSpinDate", new Date().toDateString());
+    localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
 
     spinning = false;
 }
 
-// Spin Button
+// Spin button
 spinBtn.onclick = () => {
     if(spinning) return;
     let lastSpinDate = localStorage.getItem("lastSpinDate");
     let today = new Date().toDateString();
 
     if(lastSpinDate === today){
-        let savedToken = localStorage.getItem("lastSpinToken");
-        if(savedToken && savedToken !== "NONE"){
-            resultText.textContent = "⚠ You can only spin once per day. Your code: " + savedToken;
-            tokenText.style.display = "block";
-            tokenText.textContent = "Code: " + savedToken;
-        } else {
-            resultText.textContent = "⚠ You can only spin once per day. You had no win today.";
-            tokenText.style.display = "none";
-        }
+        resultText.textContent = "⚠ You can only spin once per day. Your code: " + localStorage.getItem("lastSpinToken");
         noteText.style.display = "none";
+        tokenText.style.display = "block";
+        tokenText.textContent = "Code: " + localStorage.getItem("lastSpinToken");
         return;
     }
 
