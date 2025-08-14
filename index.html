@@ -126,16 +126,23 @@ const segments = [
     { name: "15% Off", preCode: "DISC15", weight: 1 }
 ];
 
-// Calculate segment angles
-const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
+const totalWeight = segments.reduce((sum,s)=>sum+s.weight,0);
 const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
 const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
+
+// Compute absolute start/end angles for each segment
+let segmentAngles = [];
+let cumulative = 0;
+for (let i=0;i<segments.length;i++){
+    segmentAngles.push({start:cumulative,end:cumulative+angles[i],segment:segments[i]});
+    cumulative += angles[i];
+}
 
 let startAngle = 0;
 let spinSpeed = 0;
 let spinning = false;
 
-function drawWheel() {
+function drawWheel(){
     ctx.clearRect(0,0,300,300);
     ctx.lineWidth = 2;
     ctx.font = "bold 14px Arial";
@@ -145,16 +152,16 @@ function drawWheel() {
         ctx.fillStyle = colors[i % colors.length];
         ctx.beginPath();
         ctx.moveTo(150,150);
-        ctx.arc(150,150,140,angle,angle + angles[i], false);
+        ctx.arc(150,150,140,angle,angle+angles[i],false);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle="#fff";
         ctx.stroke();
 
         ctx.save();
-        ctx.fillStyle = "white";
+        ctx.fillStyle="white";
         let textAngle = angle + angles[i]/2;
-        ctx.translate(150 + Math.cos(textAngle) * 90, 150 + Math.sin(textAngle) * 90);
+        ctx.translate(150 + Math.cos(textAngle)*90, 150 + Math.sin(textAngle)*90);
         ctx.rotate(textAngle);
         let lines = segments[i].name.split("\n");
         for(let j=0;j<lines.length;j++){
@@ -166,7 +173,7 @@ function drawWheel() {
     }
 
     // Pointer
-    ctx.fillStyle = "#FF6600";
+    ctx.fillStyle="#FF6600";
     ctx.beginPath();
     ctx.moveTo(150-10,10);
     ctx.lineTo(150+10,10);
@@ -174,8 +181,8 @@ function drawWheel() {
     ctx.fill();
 }
 
-function rotateWheel() {
-    if(spinSpeed > 0.002){
+function rotateWheel(){
+    if(spinSpeed>0.002){
         startAngle += spinSpeed;
         spinSpeed *= 0.97;
         drawWheel();
@@ -185,83 +192,68 @@ function rotateWheel() {
     }
 }
 
-// Correct pointer-aligned prize detection
-function finishSpin() {
-    // Calculate angle at pointer (12 o'clock)
-    let pointerAngle = (2 * Math.PI - (startAngle + Math.PI/2) % (2*Math.PI)) % (2*Math.PI);
+// Correct prize detection using absolute segment angles
+function finishSpin(){
+    // Pointer is at top (12 o'clock)
+    let pointerAngle = (2*Math.PI - (startAngle + Math.PI/2) % (2*Math.PI)) % (2*Math.PI);
 
-    let cumulative = 0;
-    let prize = null;
+    let prize = segmentAngles.find(s => pointerAngle >= s.start && pointerAngle < s.end)?.segment || segments[segments.length-1];
 
-    for(let i = 0; i < segments.length; i++){
-        let segStart = cumulative;
-        let segEnd = cumulative + angles[i];
-        if(pointerAngle >= segStart && pointerAngle < segEnd){
-            prize = segments[i];
-            break;
-        }
-        cumulative += angles[i];
-    }
-
-    if(!prize) prize = segments[segments.length - 1];
-
-    // Try Again case
-    if(prize.preCode === "TRYAGAIN"){
-        resultText.textContent = "😅 Sorry, you landed on: Try Again.";
-        noteText.style.display = "none";
-        tokenText.style.display = "none";
+    if(prize.preCode==="TRYAGAIN"){
+        resultText.textContent="😅 Sorry, you landed on: Try Again.";
+        noteText.style.display="none";
+        tokenText.style.display="none";
         localStorage.setItem("lastSpinDate", new Date().toDateString());
         localStorage.removeItem("lastSpinToken");
-        spinning = false;
+        spinning=false;
         return;
     }
 
     // Prize case
-    resultText.textContent = "🎉 You got: " + prize.name.replace("\n"," ");
-    noteText.style.display = "block";
-    let randomToken = "EXP-" + Math.random().toString(36).substring(2,8).toUpperCase();
-    tokenText.style.display = "block";
-    tokenText.textContent = "Code: " + prize.preCode + "-" + randomToken + " (send to claim)";
+    resultText.textContent="🎉 You got: " + prize.name.replace("\n"," ");
+    noteText.style.display="block";
+    let randomToken = "EXP-"+Math.random().toString(36).substring(2,8).toUpperCase();
+    tokenText.style.display="block";
+    tokenText.textContent="Code: "+prize.preCode+"-"+randomToken+" (send to claim)";
 
     winSound.play();
-    confetti({ particleCount: 80, spread: 70, origin: { y:0.6 } });
+    confetti({particleCount:80, spread:70, origin:{y:0.6}});
 
     localStorage.setItem("lastSpinDate", new Date().toDateString());
-    localStorage.setItem("lastSpinToken", prize.preCode + "-" + randomToken);
+    localStorage.setItem("lastSpinToken", prize.preCode+"-"+randomToken);
 
-    spinning = false;
+    spinning=false;
 }
 
-spinBtn.onclick = () => {
+spinBtn.onclick = ()=>{
     if(spinning) return;
     let lastSpinDate = localStorage.getItem("lastSpinDate");
     let today = new Date().toDateString();
 
-    if(lastSpinDate === today){
+    if(lastSpinDate===today){
         let token = localStorage.getItem("lastSpinToken");
         if(token){
-            resultText.textContent = "⚠ You already spun today. Your code: " + token;
-            tokenText.textContent = "Code: " + token;
-            tokenText.style.display = "block";
+            resultText.textContent="⚠ You already spun today. Your code: "+token;
+            tokenText.textContent="Code: "+token;
+            tokenText.style.display="block";
         } else {
-            resultText.textContent = "⚠ You already spun today and got no prize.";
-            tokenText.style.display = "none";
+            resultText.textContent="⚠ You already spun today and got no prize.";
+            tokenText.style.display="none";
         }
         return;
     }
 
-    resultText.textContent = "";
-    noteText.style.display = "none";
-    tokenText.style.display = "none";
+    resultText.textContent="";
+    noteText.style.display="none";
+    tokenText.style.display="none";
 
-    spinning = true;
-    spinSpeed = Math.random() * 0.3 + 0.3;
+    spinning=true;
+    spinSpeed=Math.random()*0.3+0.3;
     rotateWheel();
 };
 
 drawWheel();
 </script>
-
 
 </script>
 <!-- Services Section -->
