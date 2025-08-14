@@ -73,7 +73,6 @@
   </p>
 </section>
 
-  
   <!-- Spin the Wheel Button (centered & bigger) -->
 <button id="openWheelBtn" style="background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:5px;cursor:pointer;font-size:18px;display:block;margin:50px auto 0 auto;">
     🎡 Spin the Wheel
@@ -192,11 +191,12 @@ function rotateWheel() {
     }
 }
 
-// Finish spin with weighted segments
+// Finish spin with correct angle detection
 function finishSpin() {
-    let finalAngle = (2*Math.PI - startAngle % (2*Math.PI)) % (2*Math.PI);
+    // Adjust for pointer being at top
+    let finalAngle = (startAngle + Math.PI/2) % (2*Math.PI);
     let cumulative = 0;
-    let prize;
+    let prize = null;
 
     for(let i = 0; i < segments.length; i++){
         let start = cumulative;
@@ -256,6 +256,7 @@ spinBtn.onclick = () => {
 
 drawWheel();
 </script>
+
 
 
 </script>
