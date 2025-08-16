@@ -304,47 +304,51 @@ drawWheel();
 </div>
 
 <script>
-const ERSO_API_URL = "https://api-inference.huggingface.co/models/gpt2"; // free model
-const ERSO_API_KEY = "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"; // your new HF key
+const ERSO_BACKEND_URL = "https://dc4b4173-653f-4e98-812f-2924cba7e9db-00-23vv01m7zm6v4.worf.replit.dev/ask";
 
-document.getElementById("ersoAsk").onclick = async () => {
-    const question = document.getElementById("ersoInput").value.trim();
+async function askERSO(question) {
     const answerBox = document.getElementById("ersoAnswer");
     const waButton = document.getElementById("ersoWhatsApp");
     waButton.style.display = "none";
 
-    if(!question) { answerBox.textContent = "Please type your question."; return; }
+    if (!question) { 
+        answerBox.textContent = "Please type your question."; 
+        return; 
+    }
 
     answerBox.textContent = "ERSO is thinking... 🤖";
 
     try {
-        const prompt = `
-You are ERSO, a professional appliance repair assistant for Express Repairs South Africa.
-Answer in the language the user types (English, Afrikaans, Zulu, Sepedi, Xhosa, Tswana, Tsonga).
-Question: ${question}
-`;
-
-        const res = await fetch(ERSO_API_URL, {
+        const res = await fetch(ERSO_BACKEND_URL, {
             method: "POST",
-            headers: {
-                "Authorization": `Bearer ${ERSO_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ inputs: prompt })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question })
         });
         const data = await res.json();
-        let reply = data[0]?.generated_text || "";
-
-        if(!reply || reply.length < 20 || reply.toLowerCase().includes("sorry")){
-            answerBox.textContent = "ERSO couldn’t fully answer your question. Please contact us for a precise solution.";
+        
+        if (!data.answer || data.answer.length < 20 || data.answer.includes("Error")) {
+            answerBox.textContent = "ERSO couldn't fully answer your question. Please contact us directly.";
             waButton.style.display = "block";
         } else {
-            answerBox.textContent = reply;
+            answerBox.textContent = data.answer;
+            waButton.style.display = "block";
         }
     } catch (err) {
         console.error(err);
-        answerBox.textContent = "Error contacting ERSO. Check API key or network.";
+        answerBox.textContent = "Error contacting ERSO. Please contact us directly.";
         waButton.style.display = "block";
+    }
+}
+
+document.getElementById("ersoAsk").onclick = () => {
+    const question = document.getElementById("ersoInput").value.trim();
+    askERSO(question);
+};
+
+document.getElementById("ersoInput").onkeypress = (e) => {
+    if (e.key === "Enter") {
+        const question = document.getElementById("ersoInput").value.trim();
+        askERSO(question);
     }
 };
 </script>
@@ -448,10 +452,6 @@ Question: ${question}
   });
 </script>
 
-   <!-- PASTE THE ERSO WIDGET CODE HERE -->
-   const ERSO_BACKEND_URL = "https://dc4b4173-653f-4e98-812f-2924cba7e9db-00-23vv01m7zm6v4.worf.replit.dev/ask";
-   
-
-</body>
+   </body>
 </html>
 
