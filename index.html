@@ -74,7 +74,7 @@
 </section>
 
 <!-- Spin the Wheel Button -->
-<button id="openWheelBtn" style="background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:5px;cursor:pointer;font-size:18px;display:block;margin:50px auto 0 auto;">
+<button id="openWheelBtn" style="background:#0066cc;color:white;padding:15px 30px;border:none;border-radius:5px;cursor:pointer;font-size:18px;display:block;margin:50px auto 0 auto;">
     🎡 Spin the Wheel
 </button>
 
@@ -86,14 +86,14 @@
         <canvas id="wheelCanvas" width="300" height="300"></canvas>
         
         <br>
-        <button id="spinBtn" style="margin-top:20px;background:#FF6600;color:white;padding:15px 30px;border:none;border-radius:8px;cursor:pointer;font-size:18px;display:block;margin-left:auto;margin-right:auto;">
+        <button id="spinBtn" style="margin-top:20px;background:#0066cc;color:white;padding:15px 30px;border:none;border-radius:8px;cursor:pointer;font-size:18px;display:block;margin-left:auto;margin-right:auto;">
             Spin!
         </button>
         <p id="resultText" style="font-weight:bold;margin-top:10px;color:#333;"></p>
         <p id="noteText" style="font-size:12px;color:#777;display:none;">
             Prize must be used the same day. Claiming does not guarantee immediate service — availability depends on technician schedule. CAN ONLY CLAIM 1 DISCOUNTED PRIZE PER ITEM!!!
         </p>
-        <p id="tokenText" style="font-size:14px;color:#FF6600;font-weight:bold;display:none;"></p>
+        <p id="tokenText" style="font-size:14px;color:#0066cc;font-weight:bold;display:none;"></p>
     </div>
 </div>
 
@@ -128,7 +128,7 @@ const segments = [
 
 const totalWeight = segments.reduce((sum,s)=>sum+s.weight,0);
 const angles = segments.map(s => (s.weight / totalWeight) * 2 * Math.PI);
-const colors = ["#FF6600","#333333","#FF6600","#333333","#FF6600"];
+const colors = ["#0066cc","#333333","#0066cc","#333333","#0066cc"];
 
 // Compute absolute start/end angles for each segment
 let segmentAngles = [];
@@ -173,7 +173,7 @@ function drawWheel(){
     }
 
     // Pointer
-    ctx.fillStyle="#FF6600";
+    ctx.fillStyle="#0066cc";
     ctx.beginPath();
     ctx.moveTo(150-10,10);
     ctx.lineTo(150+10,10);
@@ -254,6 +254,7 @@ spinBtn.onclick = ()=>{
 
 drawWheel();
 </script>
+
 
 </script>
 <!-- Services Section -->
