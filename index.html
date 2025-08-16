@@ -291,6 +291,55 @@ drawWheel();
     <img src="images/why.jpg" alt="Why Choose Us">
   </section>
 
+<!-- ERSO: Multilingual Express Repairs AI Assistant -->
+<div id="ersoWidget" style="border:2px solid #0066cc; padding:15px; max-width:400px; margin:20px auto; border-radius:10px; font-family:Arial;">
+    <h3 style="color:#0066cc; text-align:center;">ERSO - Your Repair Assistant</h3>
+    <input type="text" id="ersoInput" placeholder="Ask about repairs..." style="width:100%; padding:8px; margin-top:10px; border-radius:5px; border:1px solid #ccc;">
+    <button id="ersoAsk" style="background:#0066cc; color:white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer; width:100%;">Ask ERSO</button>
+    <p id="ersoAnswer" style="margin-top:15px; font-weight:bold; color:#333;"></p>
+    <a id="ersoWhatsApp" href="https://wa.me/27691239041" target="_blank" 
+       style="display:none; text-align:center; margin-top:15px; padding:10px; background:#25D366; color:white; border-radius:5px; text-decoration:none; font-weight:bold;">
+       Contact Express Repairs via WhatsApp
+    </a>
+</div>
+
+<script>
+document.getElementById("ersoAsk").onclick = async () => {
+    const question = document.getElementById("ersoInput").value.trim();
+    const answerBox = document.getElementById("ersoAnswer");
+    const waButton = document.getElementById("ersoWhatsApp");
+    waButton.style.display = "none";
+
+    if(!question) { answerBox.textContent = "Please type your question."; return; }
+
+    answerBox.textContent = "ERSO is thinking... 🤖";
+
+    try {
+        // IMPORTANT: Do NOT hardcode your HF key here
+        // Instead, use a backend endpoint to keep it secret
+        const res = await fetch("/erso", { // replace with your backend URL
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        let reply = data.reply || "";
+
+        if(!reply || reply.length < 20 || reply.toLowerCase().includes("sorry")){
+            answerBox.textContent = "ERSO couldn’t fully answer your question. Please contact us for a precise solution.";
+            waButton.style.display = "block";
+        } else {
+            answerBox.textContent = reply;
+        }
+    } catch (err) {
+        console.error(err);
+        answerBox.textContent = "Error contacting ERSO. Check backend server.";
+        waButton.style.display = "block";
+    }
+};
+</script>
+
+   
 <!-- Book Section -->
   <section id="book">
     <h2>Book a Repair</h2>
