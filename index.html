@@ -122,7 +122,7 @@ const segments = [
     { name: "5% Off", preCode: "DISC5", weight: 1 },
     { name: "Free Call-out\n(30 km Radius)", preCode: "FREECALL", weight: 1 },
     { name: "10% Off", preCode: "DISC10", weight: 1 },
-    { name: "Try Again", preCode: "TRYAGAIN", weight: 1 },
+    { name: "No Luck", preCode: "TRYAGAIN", weight: 1 }, // <- Updated text
     { name: "15% Off", preCode: "DISC15", weight: 1 }
 ];
 
@@ -194,13 +194,11 @@ function rotateWheel(){
 
 // Correct prize detection using absolute segment angles
 function finishSpin(){
-    // Pointer is at top (12 o'clock)
     let pointerAngle = (2*Math.PI - (startAngle + Math.PI/2) % (2*Math.PI)) % (2*Math.PI);
-
     let prize = segmentAngles.find(s => pointerAngle >= s.start && pointerAngle < s.end)?.segment || segments[segments.length-1];
 
     if(prize.preCode==="TRYAGAIN"){
-        resultText.textContent="😅 Sorry, you landed on: Try Again.";
+        resultText.textContent="😅 Sorry, you landed on: No Luck."; // <- Updated text
         noteText.style.display="none";
         tokenText.style.display="none";
         localStorage.setItem("lastSpinDate", new Date().toDateString());
@@ -209,7 +207,6 @@ function finishSpin(){
         return;
     }
 
-    // Prize case
     resultText.textContent="🎉 You got: " + prize.name.replace("\n"," ");
     noteText.style.display="block";
     let randomToken = "EXP-"+Math.random().toString(36).substring(2,8).toUpperCase();
@@ -254,6 +251,7 @@ spinBtn.onclick = ()=>{
 
 drawWheel();
 </script>
+
 
 
 </script>
