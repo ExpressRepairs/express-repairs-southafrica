@@ -304,6 +304,9 @@ drawWheel();
 </div>
 
 <script>
+const ERSO_API_URL = "https://api-inference.huggingface.co/models/gpt2"; // free model
+const ERSO_API_KEY = "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"; // your HF key
+
 document.getElementById("ersoAsk").onclick = async () => {
     const question = document.getElementById("ersoInput").value.trim();
     const answerBox = document.getElementById("ersoAnswer");
@@ -315,15 +318,22 @@ document.getElementById("ersoAsk").onclick = async () => {
     answerBox.textContent = "ERSO is thinking... 🤖";
 
     try {
-        // IMPORTANT: Do NOT hardcode your HF key here
-        // Instead, use a backend endpoint to keep it secret
-        const res = await fetch("/erso", { // replace with your backend URL
+        const prompt = `
+You are ERSO, a professional appliance repair assistant for Express Repairs South Africa.
+Answer in the language the user types (English, Afrikaans, Zulu, Sepedi, Xhosa, Tswana, Tsonga).
+Question: ${question}
+`;
+
+        const res = await fetch(ERSO_API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question })
+            headers: {
+                "Authorization": `Bearer ${ERSO_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ inputs: prompt })
         });
         const data = await res.json();
-        let reply = data.reply || "";
+        let reply = data[0]?.generated_text || "";
 
         if(!reply || reply.length < 20 || reply.toLowerCase().includes("sorry")){
             answerBox.textContent = "ERSO couldn’t fully answer your question. Please contact us for a precise solution.";
@@ -333,13 +343,13 @@ document.getElementById("ersoAsk").onclick = async () => {
         }
     } catch (err) {
         console.error(err);
-        answerBox.textContent = "Error contacting ERSO. Check backend server.";
+        answerBox.textContent = "Error contacting ERSO. Check API key or network.";
         waButton.style.display = "block";
     }
 };
 </script>
 
-   
+
 <!-- Book Section -->
   <section id="book">
     <h2>Book a Repair</h2>
