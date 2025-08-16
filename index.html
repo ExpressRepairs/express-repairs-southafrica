@@ -292,9 +292,10 @@ drawWheel();
   </section>
 
 <!-- ERSO: Multilingual Express Repairs AI Assistant -->
-<div id="ersoWidget" style="border:2px solid #0066cc; padding:15px; max-width:400px; margin:20px auto; border-radius:10px; font-family:Arial;">
+<div id="ersoWidget" style="border:2px solid #0066cc; padding:15px; max-width:400px; margin:20px auto; border-radius:10px; font-family:Arial; text-align:center;">
     <h3 style="color:#0066cc; text-align:center;">ERSO - Your Repair Assistant</h3>
-    <input type="text" id="ersoInput" placeholder="Ask about repairs..." style="width:100%; padding:8px; margin-top:10px; border-radius:5px; border:1px solid #ccc;">
+    <input type="text" id="ersoInput" placeholder="Ask about repairs..." 
+           style="width:90%; max-width:360px; padding:8px; margin-top:10px; border-radius:5px; border:1px solid #ccc; display:inline-block;">
     <button id="ersoAsk" style="background:#0066cc; color:white; padding:10px 20px; margin-top:10px; border:none; border-radius:5px; cursor:pointer; width:100%;">Ask ERSO</button>
     <p id="ersoAnswer" style="margin-top:15px; font-weight:bold; color:#333;"></p>
     <a id="ersoWhatsApp" href="https://wa.me/27691239041" target="_blank" 
@@ -352,6 +353,7 @@ document.getElementById("ersoInput").onkeypress = (e) => {
     }
 };
 </script>
+
 
 
 <!-- Book Section -->
